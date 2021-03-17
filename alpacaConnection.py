@@ -14,7 +14,7 @@ HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 def create_order(close):
     data = {
         "symbol": 'AAPL',
-        "qty": 1,
+        "qty": 10,
         "side": "buy",
         "type": "limit",
         "limit_price": close,
