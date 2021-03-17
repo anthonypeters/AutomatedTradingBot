@@ -1,3 +1,3 @@
 # AutomatedTradesWAlpaca
 
-- Pull stock data form AlphaVantage to place trades with various technical strategies
+- Pull stock data and place automated trades with Alpaca. 
