@@ -28,6 +28,7 @@ def create_order(symbol, quantity, close):
         }
     }
     r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
-
+    print("\n")
+    print(r.content)
     return json.loads(r.content)
 ####
