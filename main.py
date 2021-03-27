@@ -52,7 +52,7 @@ def compute_RSI(priceDict):
 def trade_algo(trackingArray):
     i=0
     for tup in trackingArray:
-        if (trackingArray[i][2] < 40):
+        if (trackingArray[i][2] < 45):
             print("\n")
             print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
             alpacaConnection.create_order(trackingArray[i][0], 10, trackingArray[i][1])
