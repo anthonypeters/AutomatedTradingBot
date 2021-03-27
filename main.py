@@ -8,7 +8,6 @@ import numpy as np
 import yfinance as yf
 import csv
 import pandas as pd
-from operator import itemgetter
 
 #### Needed info to connect to alpaca
 API_KEY = "PKIHF26ARGET0YRSFSHB"
@@ -19,6 +18,8 @@ POSITIONS_URL = "{}/v2/positions".format(BASE_URL)
 ORDERS_URL = "{}/v2/orders".format(BASE_URL)
 HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 ####
+
+######################################## DEFINED FUNCTIONS ########################################
 
 #### Function to download data to CSV, continuously updating with new data
 #!!! Should edit to only download new data for the week
@@ -76,8 +77,9 @@ def trade_algo(trackingArray):
 ####
 
 ######################################## MAIN CALLS ########################################
+
 while True:
-    
+
     api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
     portfolio = api.list_positions()
     orders = api.list_orders(status='open', limit=100, nested=True)
