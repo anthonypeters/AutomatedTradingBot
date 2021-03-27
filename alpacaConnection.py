@@ -16,15 +16,14 @@ def create_order(symbol, quantity, close):
         "symbol": symbol,
         "qty": quantity,
         "side": "buy",
-        "type": "limit",
-        "limit_price": close,
+        "type": "market",
         "time_in_force": "gtc",
         "order_class": "bracket",
         "take_profit": {
-            "limit_price": close * 1.10
+            "limit_price": "market" * 1.10
         },
         "stop_loss": {
-            "stop_price": close * 0.95,
+            "stop_price": "market" * 0.95,
         }
     }
     r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
