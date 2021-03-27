@@ -76,37 +76,39 @@ def trade_algo(trackingArray):
 ####
 
 ######################################## MAIN CALLS ########################################
-api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
-portfolio = api.list_positions()
-orders = api.list_orders(status='open', limit=100, nested=True)
-positions = api.list_positions()
+while True:
+    
+    api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
+    portfolio = api.list_positions()
+    orders = api.list_orders(status='open', limit=100, nested=True)
+    positions = api.list_positions()
 
-#### Create Tickers list
-tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN"]
+    #### Create Tickers list
+    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN"]
 
-for order in orders:
-    for symbol in tickers:
-        if order.symbol == symbol:
-            tickers.remove(symbol)
+    for order in orders:
+        for symbol in tickers:
+            if order.symbol == symbol:
+                tickers.remove(symbol)
 
-for position in positions:
-    for symbol in tickers:
-        if position.symbol == symbol:
-            tickers.remove(symbol)
+    for position in positions:
+        for symbol in tickers:
+            if position.symbol == symbol:
+                tickers.remove(symbol)
 
 
-#### Update CSV
-#update_csv(tickers)
-####
+    #### Update CSV
+    #update_csv(tickers)
+    ####
 
-#### Pull data into Price Dict
-priceDictionary = pull_data(tickers)
-####
+    #### Pull data into Price Dict
+    priceDictionary = pull_data(tickers)
+    ####
 
-#### Compute RSI given Price Dict
-rsi_array = compute_RSI(priceDictionary)
-####
+    #### Compute RSI given Price Dict
+    rsi_array = compute_RSI(priceDictionary)
+    ####
 
-#### Call the algo to check for RSI and place orders
-trade_algo(rsi_array)
-####
+    #### Call the algo to check for RSI and place orders
+    trade_algo(rsi_array)
+    ####
