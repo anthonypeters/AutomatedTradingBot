@@ -15,27 +15,24 @@ HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 
 #### Create order function
 def create_order(symbol, quantity, close):
-    api = tradeapi.REST(API_KEY, SECRET_KEY)
-    portfolio = api.list_positions()
-
-    for position in portfolio:
-        if position.qty == 0:
-            data = {
-                "symbol": symbol,
-                "qty": quantity,
-                "side": "buy",
-                "type": "market",
-                "time_in_force": "gtc",
-                "order_class": "bracket",
-                "take_profit": {
-                    "limit_price": close * 1.10
-                },
-                "stop_loss": {
-                    "stop_price": close * 0.95,
-                }
-            }
-            r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
-            print("\n")
-            print(r.content)
-            return json.loads(r.content)
+    data = {
+        "symbol": symbol,
+        "qty": quantity,
+        "side": "buy",
+        "type": "market",
+        "time_in_force": "gtc",
+        "order_class": "bracket",
+        "take_profit": {
+            "limit_price": close * 1.10
+        },
+        "stop_loss": {
+            "stop_price": close * 0.95,
+        }
+    }
+    r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
+    print("\n")
+    print(r.content)
+    return(json.loads(r.content))
+        
 ####
+

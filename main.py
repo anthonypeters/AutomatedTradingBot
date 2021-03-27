@@ -8,6 +8,17 @@ import numpy as np
 import yfinance as yf
 import csv
 import pandas as pd
+from operator import itemgetter
+
+#### Needed info to connect to alpaca
+API_KEY = "PKIHF26ARGET0YRSFSHB"
+SECRET_KEY = "n3qvT6B6N3e4zMIWG8gr6pPX740QsbOQsN06togP"
+BASE_URL = "https://paper-api.alpaca.markets"
+ACCOUNT_URL = "{}/v2/account".format(BASE_URL)
+POSITIONS_URL = "{}/v2/positions".format(BASE_URL)
+ORDERS_URL = "{}/v2/orders".format(BASE_URL)
+HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
+####
 
 #### Function to download data to CSV, continuously updating with new data
 #!!! Should edit to only download new data for the week
@@ -36,7 +47,6 @@ def pull_data(tickers):
 
 #### Given the priceDict with various tickers, computer the RSI and return array of 3-tuples
 def compute_RSI(priceDict):
-    #### Compute RSI using talib and find lastRSI and lastClose for the list of Tickers
     trackingArrayRSI = []
     for key in priceDict:
         rsi = talib.RSI(priceDict[key], timeperiod=14)
@@ -46,6 +56,7 @@ def compute_RSI(priceDict):
     
     print("\n")
     print("Array of RSI: " + str(trackingArrayRSI))
+    print("\n----------------------------------------------------------")
     return(trackingArrayRSI)
 ####
 
@@ -56,20 +67,36 @@ def trade_algo(trackingArray):
         if (trackingArray[i][2] < 45):
             print("\n")
             print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
-            print("\n")
+            print("\n----------------------------------------------------------")
             alpacaConnection.create_order(trackingArray[i][0], 10, trackingArray[i][1])
         else:
             print(str(trackingArray[i][0]) +  " not under 40 RSI!")
+            print("\n----------------------------------------------------------")
         i+=1
 ####
 
 ######################################## MAIN CALLS ########################################
+api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
+portfolio = api.list_positions()
+orders = api.list_orders(status='open', limit=100, nested=True)
+positions = api.list_positions()
 
 #### Create Tickers list
 tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN"]
 
+for order in orders:
+    for symbol in tickers:
+        if order.symbol == symbol:
+            tickers.remove(symbol)
+
+for position in positions:
+    for symbol in tickers:
+        if position.symbol == symbol:
+            tickers.remove(symbol)
+
+
 #### Update CSV
-update_csv(tickers)
+#update_csv(tickers)
 ####
 
 #### Pull data into Price Dict
