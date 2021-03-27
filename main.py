@@ -1,6 +1,7 @@
 import requests
 import json
 import alpacaConnection
+import alpaca_trade_api as tradeapi
 import talib
 from talib import abstract
 import numpy as np
@@ -55,12 +56,12 @@ def trade_algo(trackingArray):
         if (trackingArray[i][2] < 45):
             print("\n")
             print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
+            print("\n")
             alpacaConnection.create_order(trackingArray[i][0], 10, trackingArray[i][1])
         else:
             print(str(trackingArray[i][0]) +  " not under 40 RSI!")
         i+=1
 ####
-
 
 ######################################## MAIN CALLS ########################################
 
@@ -68,7 +69,7 @@ def trade_algo(trackingArray):
 tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN"]
 
 #### Update CSV
-#update_csv(tickers)
+update_csv(tickers)
 ####
 
 #### Pull data into Price Dict
@@ -82,5 +83,3 @@ rsi_array = compute_RSI(priceDictionary)
 #### Call the algo to check for RSI and place orders
 trade_algo(rsi_array)
 ####
-
-
