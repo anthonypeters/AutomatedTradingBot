@@ -86,7 +86,7 @@ while True:
     positions = api.list_positions()
 
     #### Create Tickers list
-    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN"]
+    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN", "VIAC", "DISCA", "PENN", "ROKU", "CRWD"]
 
     for order in orders:
         for symbol in tickers:
@@ -100,7 +100,7 @@ while True:
 
 
     #### Update CSV
-    #update_csv(tickers)
+    update_csv(tickers)
     ####
 
     #### Pull data into Price Dict
