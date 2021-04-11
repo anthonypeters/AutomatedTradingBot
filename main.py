@@ -73,6 +73,7 @@ def trade_algo_buy(trackingArray, ordersArray, positionsArray):
             print(str(trackingArray[i][0]) +  " not under 40 RSI!")
             print("\n----------------------------------------------------------")
         i+=1
+####
 
 #### Sell side Algo to check if already holding a position and RSI > 60
 def trade_algo_sell(trackingArray, ordersArray, positionsArray):
@@ -94,7 +95,7 @@ def trade_algo_sell(trackingArray, ordersArray, positionsArray):
 
 while True:
 
-    #### Create Tickers list
+    #### Create Tickers list and configure current orders/positions
     tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "VIAC", "DISCA", "PENN", "ROKU", "CRWD"]
 
     api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
