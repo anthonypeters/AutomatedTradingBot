@@ -22,10 +22,9 @@ HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 ######################################## DEFINED FUNCTIONS ########################################
 
 #### Function to download data to CSV, continuously updating with new data
-#!!! Should edit to only download new data for the week
 def update_csv(tickers):
     for i in tickers:
-      data = yf.download(tickers=i, group_by="Close", interval="1d")
+      data = yf.download(tickers=i, group_by="Close", interval="1m", period="1d")
       priceList = data['Close']
       written = priceList.to_csv(path_or_buf="/Users/anthonypeters/Desktop/Coding-Jobs-and-Projects/For-Projects/Projects-Python/AutomatedTradesWAlpaca/CSVz/stock_data_{ticker}.csv".format(ticker = i))
       
@@ -46,7 +45,7 @@ def pull_data(tickers):
     return(priceDict)
 ####
 
-#### Given the priceDict with various tickers, computer the RSI and return array of 3-tuples
+#### Given the priceDict with various tickers, compute the RSI and return array of 3-tuples
 def compute_RSI(priceDict):
     trackingArrayRSI = []
     for key in priceDict:
@@ -61,17 +60,32 @@ def compute_RSI(priceDict):
     return(trackingArrayRSI)
 ####
 
-#### Takes RSI array of 3-tuples and places trades on RSI < Num
-def trade_algo(trackingArray):
+#### Buy Side algo that takes RSI array of 3-tuples and places trades on RSI < Num for tickers with no open position
+def trade_algo_buy(trackingArray, ordersArray, positionsArray):
     i=0
     for tup in trackingArray:
-        if (trackingArray[i][2] < 45):
+        if (trackingArray[i][2] < 40) and (trackingArray[i][0] not in ordersArray) and (trackingArray[i][0] not in positionsArray):
             print("\n")
             print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
             print("\n----------------------------------------------------------")
-            alpacaConnection.create_order(trackingArray[i][0], 10, trackingArray[i][1])
+            alpacaConnection.create_order("buy", trackingArray[i][0], 10)
         else:
             print(str(trackingArray[i][0]) +  " not under 40 RSI!")
+            print("\n----------------------------------------------------------")
+        i+=1
+
+#### Sell side Algo to check if already holding a position and RSI > 60
+def trade_algo_sell(trackingArray, ordersArray, positionsArray):
+    
+    i=0
+    for tup in trackingArray:
+        if (trackingArray[i][2] > 60) and (trackingArray[i][0] in positionsArray):
+            print("\n")
+            print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
+            print("\n----------------------------------------------------------")
+            alpacaConnection.create_order("sell", trackingArray[i][0], 10)
+        else:
+            print(str(trackingArray[i][0]) +  " not over 60 RSI/not holding a current position!")
             print("\n----------------------------------------------------------")
         i+=1
 ####
@@ -80,24 +94,26 @@ def trade_algo(trackingArray):
 
 while True:
 
+    #### Create Tickers list
+    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "VIAC", "DISCA", "PENN", "ROKU", "CRWD"]
+
     api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
     portfolio = api.list_positions()
     orders = api.list_orders(status='open', limit=100, nested=True)
     positions = api.list_positions()
 
-    #### Create Tickers list
-    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "AMZN", "VIAC", "DISCA", "PENN", "ROKU", "CRWD"]
+    orders_array = []
+    positions_array = []
 
     for order in orders:
         for symbol in tickers:
             if order.symbol == symbol:
-                tickers.remove(symbol)
+                orders_array.append(symbol)
 
     for position in positions:
         for symbol in tickers:
             if position.symbol == symbol:
-                tickers.remove(symbol)
-
+                positions_array.append(symbol)
 
     #### Update CSV
     update_csv(tickers)
@@ -111,6 +127,9 @@ while True:
     rsi_array = compute_RSI(priceDictionary)
     ####
 
-    #### Call the algo to check for RSI and place orders
-    trade_algo(rsi_array)
+    #### Call the algo to check for RSI and place/sell orders
+    trade_algo_buy(rsi_array, orders_array, positions_array)
+    trade_algo_sell(rsi_array, orders_array, positions_array)
     ####
+
+

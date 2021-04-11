@@ -12,27 +12,18 @@ ORDERS_URL = "{}/v2/orders".format(BASE_URL)
 HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
 ####
 
-
 #### Create order function
-def create_order(symbol, quantity, close):
+def create_order(side, symbol, quantity):
     data = {
         "symbol": symbol,
         "qty": quantity,
-        "side": "buy",
+        "side": side,
         "type": "market",
         "time_in_force": "gtc",
-        "order_class": "bracket",
-        "take_profit": {
-            "limit_price": close * 1.10
-        },
-        "stop_loss": {
-            "stop_price": close * 0.95,
-        }
     }
     r = requests.post(ORDERS_URL, json=data, headers=HEADERS)
     print("\n")
     print(r.content)
-    return(json.loads(r.content))
-        
+    return(json.loads(r.content))    
 ####
 
