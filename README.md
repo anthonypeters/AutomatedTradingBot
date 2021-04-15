@@ -8,10 +8,6 @@
 - Opens trades when RSI is below 40
 - Closes trades when RSI is above 60
 
-# Automation Process
-
-- Nothing complex, runs with a while True loop
-
 # Data feeds
 
 - Gets data from yfinance API
