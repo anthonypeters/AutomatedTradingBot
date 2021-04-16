@@ -8,16 +8,8 @@ import numpy as np
 import yfinance as yf
 import csv
 import pandas as pd
-
-#### Needed info to connect to alpaca
-API_KEY = "PKIHF26ARGET0YRSFSHB"
-SECRET_KEY = "n3qvT6B6N3e4zMIWG8gr6pPX740QsbOQsN06togP"
-BASE_URL = "https://paper-api.alpaca.markets"
-ACCOUNT_URL = "{}/v2/account".format(BASE_URL)
-POSITIONS_URL = "{}/v2/positions".format(BASE_URL)
-ORDERS_URL = "{}/v2/orders".format(BASE_URL)
-HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
-####
+import time
+import datetime
 
 ######################################## DEFINED FUNCTIONS ########################################
 
@@ -61,60 +53,69 @@ def compute_RSI(priceDict):
 ####
 
 #### Buy Side algo that takes RSI array of 3-tuples and places trades on RSI < Num for tickers with no open position
-def trade_algo_buy(trackingArray, ordersArray, positionsArray):
+def trade_algo_buy(trackingArray, positionsDict):
+    positionSymbols = []
+    for key in positionsDict:
+        positionSymbols.append(key)
+
     i=0
     for tup in trackingArray:
-        if (trackingArray[i][2] < 40) and (trackingArray[i][0] not in ordersArray) and (trackingArray[i][0] not in positionsArray):
+        if (trackingArray[i][2] < 35) and (trackingArray[i][0] not in positionSymbols):
             print("\n")
             print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
             print("\n----------------------------------------------------------")
-            alpacaConnection.create_order("buy", trackingArray[i][0], 10)
+            alpacaConnection.create_order("buy", trackingArray[i][0], round(((100000*.05)/trackingArray[i][1])))
         else:
-            print(str(trackingArray[i][0]) +  " not under 40 RSI!")
+            print(str(trackingArray[i][0]) +  " not under 30 RSI! / Already holding a position")
             print("\n----------------------------------------------------------")
         i+=1
 ####
 
 #### Sell side Algo to check if already holding a position and RSI > 60
-def trade_algo_sell(trackingArray, ordersArray, positionsArray):
-    
+def trade_algo_sell(trackingArray, positionsDict):
+    positionSymbols = []
+    for key in positionsDict:
+        positionSymbols.append(key)
+
     i=0
     for tup in trackingArray:
-        if (trackingArray[i][2] > 60) and (trackingArray[i][0] in positionsArray):
-            print("\n")
-            print(trackingArray[i][0], trackingArray[i][1], trackingArray[i][2])
-            print("\n----------------------------------------------------------")
-            alpacaConnection.create_order("sell", trackingArray[i][0], 10)
+        if (trackingArray[i][2] > 60) and (trackingArray[i][0] in positionSymbols):
+            print("\n------------------------ SOLD ----------------------------------")
+            alpacaConnection.create_order("sell", trackingArray[i][0], positionsDict[trackingArray[i][0]])
         else:
-            print(str(trackingArray[i][0]) +  " not over 60 RSI/not holding a current position!")
+            print(str(trackingArray[i][0]) +  " not over 60 RSI / not holding a current position!")
             print("\n----------------------------------------------------------")
         i+=1
 ####
 
 ######################################## MAIN CALLS ########################################
 
+#### Needed info to connect to alpaca
+API_KEY = "PKIHF26ARGET0YRSFSHB"
+SECRET_KEY = "n3qvT6B6N3e4zMIWG8gr6pPX740QsbOQsN06togP"
+BASE_URL = "https://paper-api.alpaca.markets"
+ACCOUNT_URL = "{}/v2/account".format(BASE_URL)
+POSITIONS_URL = "{}/v2/positions".format(BASE_URL)
+ORDERS_URL = "{}/v2/orders".format(BASE_URL)
+HEADERS = {'APCA-API-KEY-ID': API_KEY, 'APCA-API-SECRET-KEY': SECRET_KEY}
+####
+
 while True:
 
     #### Create Tickers list and configure current orders/positions
-    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "VIAC", "DISCA", "PENN", "ROKU", "CRWD"]
+    tickers = ["AAPL", "SPY", "PG", "JNJ", "XOM", "DG", "VIAC", "DISCA", "PENN", "ROKU", "CRWD", "PEP", "KO", "JPM", "GS", "MODN", "MDB"]
 
     api = tradeapi.REST(API_KEY, SECRET_KEY, BASE_URL)
     portfolio = api.list_positions()
     orders = api.list_orders(status='open', limit=100, nested=True)
     positions = api.list_positions()
 
-    orders_array = []
-    positions_array = []
-
-    for order in orders:
-        for symbol in tickers:
-            if order.symbol == symbol:
-                orders_array.append(symbol)
+    positions_dict = {}
 
     for position in positions:
         for symbol in tickers:
             if position.symbol == symbol:
-                positions_array.append(symbol)
+                positions_dict[symbol] = position.qty
 
     #### Update CSV
     update_csv(tickers)
@@ -129,8 +130,16 @@ while True:
     ####
 
     #### Call the algo to check for RSI and place/sell orders
-    trade_algo_buy(rsi_array, orders_array, positions_array)
-    trade_algo_sell(rsi_array, orders_array, positions_array)
+    trade_algo_buy(rsi_array, positions_dict)
+    trade_algo_sell(rsi_array, positions_dict)
+    print('\nCurrent date/time: {}'.format(datetime.datetime.now()))
+
+
+    activities = api.get_activities()
+    activities_df = pd.DataFrame([activity._raw for activity in activities])
+    activities_df.to_csv('my_activites_file.csv')
+    
+    time.sleep(30)
     ####
 
 
